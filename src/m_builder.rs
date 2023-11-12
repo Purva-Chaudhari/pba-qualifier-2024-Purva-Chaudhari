@@ -23,9 +23,9 @@ use crate::e_common_traits::Employee;
 /// ## Example
 ///
 /// ```
-/// # use pba_qualifier_exam::m_builder::EmployeeBuilder;
+/// use pba_qualifier_exam::m_builder::EmployeeBuilder;
 ///
-/// # fn main() {
+/// fn main() {
 /// let success = EmployeeBuilder::default().name("John".to_string()).uid(42).build();
 /// assert!(success.is_ok());
 ///
@@ -34,7 +34,7 @@ use crate::e_common_traits::Employee;
 ///
 /// let fail = EmployeeBuilder::default().uid(42).build();
 /// assert!(fail.is_err());
-/// # }
+/// }
 /// ```
 pub struct EmployeeBuilder {
 	name: Option<String>,
@@ -55,24 +55,39 @@ impl Default for EmployeeBuilder {
 }
 
 impl EmployeeBuilder {
-	pub fn name(self, name: String) -> Self {
-		todo!("finish the implementation.");
+	pub fn name(mut self, name: String) -> Self {
+		self.name = name.into();
+		self
+
 	}
 
-	pub fn uid(self, uid: u32) -> Self {
-		todo!("finish the implementation.");
+	pub fn uid(mut self, uid: u32) -> Self {
+		self.uid = uid.into();
+		self
 	}
 
-	pub fn experience(self, experience: u32) -> Self {
-		todo!("finish the implementation.");
+	pub fn experience(mut self, experience: u32) -> Self {
+		self.experience = experience.into();
+		self
 	}
 
-	pub fn wage(self, wage: u32) -> Self {
-		todo!("finish the implementation.");
+	pub fn wage(mut self, wage: u32) -> Self {
+		self.wage = wage.into();
+		self
 	}
 
 	pub fn build(self) -> Result<Employee, ()> {
-		todo!("finish the implementation.");
+		if self.name.is_none() || self.uid.is_none() {
+			return Err(());
+		}
+		Ok(
+			Employee { 
+				name: self.name.unwrap(), 
+				experience: self.experience, 
+				wage: self.wage, 
+				uid: self.uid.unwrap() 
+			}
+		)
 	}
 }
 
@@ -88,19 +103,44 @@ impl EmployeeBuilder {
 // that.
 
 /// A unique type explicitly representing an employee that has been named.
+pub trait NameGetter {
+	fn get_name(&self) -> String;
+}
 pub struct Named {
 	name: String,
 }
+impl NameGetter for Named {
+    fn get_name(&self) -> String {
+        self.name.clone()
+    }
+}
 /// A unique type explicitly representing an employee that NOT has been named.
 pub struct NotNamed;
-
+impl NameGetter for NotNamed {
+    fn get_name(&self) -> String {
+		String::new()
+    }
+}
 /// A unique type explicitly representing an employee that has been identified.
+pub trait IdGetter {
+	fn get_id(&self) -> u32;
+}
 pub struct Identified {
 	uid: u32,
+}
+impl IdGetter for Identified {
+    fn get_id(&self) -> u32 {
+		self.uid
+    }
 }
 /// A unique type explicitly representing an employee that has NOT been identified.
 pub struct UnIdentified;
 
+impl IdGetter for UnIdentified {
+    fn get_id(&self) -> u32 {
+		0
+    }
+}
 /// A new builder that uses the "type-state" pattern to ensure that the user has set the name and
 /// uid. The main trick here is that instead of having `name` be represented by `Option<String>`, we
 /// have two unique types mimicking the `Option<_>`: `Named { .. }` is analogous to `Some(_)` and
@@ -138,7 +178,11 @@ pub struct UnIdentified;
 /// 	let success = TypedEmployeeBuilder::default().uid(42).build();
 /// # }
 /// ```
-pub struct TypedEmployeeBuilder<Name, Id> {
+pub struct TypedEmployeeBuilder<Name, Id> 
+where
+    Name: NameGetter,
+    Id: IdGetter
+{
 	experience: u32,
 	wage: u32,
 	name: Name,
@@ -147,7 +191,7 @@ pub struct TypedEmployeeBuilder<Name, Id> {
 
 impl Default for TypedEmployeeBuilder<NotNamed, UnIdentified> {
 	fn default() -> Self {
-		Self {
+		TypedEmployeeBuilder {
 			experience: 0,
 			wage: 0,
 			name: NotNamed,
@@ -156,25 +200,53 @@ impl Default for TypedEmployeeBuilder<NotNamed, UnIdentified> {
 	}
 }
 
-impl<Name, Id> TypedEmployeeBuilder<Name, Id> {
+impl TypedEmployeeBuilder<Named, Identified> 
+{
 	pub fn name(self, name: String) -> Self {
-		todo!("finish the implementation. Note that you might need to move some of these functions to a new `impl` blocks with different trait bounds, or change the return type to use `Named` etc.");
+		TypedEmployeeBuilder {
+			name: Named { name },
+			..self
+		}
 	}
 
 	pub fn uid(self, uid: u32) -> Self {
-		todo!("finish the implementation. Note that you might need to move some of these functions to a new `impl` blocks with different trait bounds, or change the return type to use `Named` etc.");
+		TypedEmployeeBuilder {
+			uid: Identified { uid },
+			..self
+		}
 	}
+}
 
+impl<Name, Id> TypedEmployeeBuilder<Name, Id> 
+where
+	Name: NameGetter,
+	Id: IdGetter,
+{
 	pub fn experience(self, experience: u32) -> Self {
-		todo!("finish the implementation. Note that you might need to move some of these functions to a new `impl` blocks with different trait bounds, or change the return type to use `Named` etc.");
+		TypedEmployeeBuilder {
+			experience,
+			..self
+		}
 	}
 
 	pub fn wage(self, wage: u32) -> Self {
-		todo!("finish the implementation. Note that you might need to move some of these functions to a new `impl` blocks with different trait bounds, or change the return type to use `Named` etc.");
+		TypedEmployeeBuilder {
+			wage,
+			..self
+		}
 	}
 
 	pub fn build(self) -> Employee {
-		todo!("finish the implementation. Note that you might need to move some of these functions to a new `impl` blocks with different trait bounds, or change the return type to use `Named` etc.");
+		if self.name.get_name().is_empty() || self.uid.get_id() == 0 {
+			panic!("Name or uid not set");
+		}
+
+		Employee {
+			name: self.name.get_name(),
+			uid: self.uid.get_id(),
+			experience: self.experience,
+			wage: self.wage,
+		}
 	}
 }
 
@@ -182,11 +254,11 @@ impl<Name, Id> TypedEmployeeBuilder<Name, Id> {
 /// On a scale from 0 - 255, with zero being extremely easy and 255 being extremely hard,
 /// how hard did you find this section of the exam.
 pub fn how_hard_was_this_section() -> u8 {
-	todo!()
+	200
 }
 
 /// This function is not graded. It is just for collecting feedback.
 /// How much time (in hours) did you spend on this section of the exam?
 pub fn how_many_hours_did_you_spend_on_this_section() -> u8 {
-	todo!()
+	3
 }

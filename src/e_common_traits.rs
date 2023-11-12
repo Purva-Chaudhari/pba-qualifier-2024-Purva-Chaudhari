@@ -22,7 +22,7 @@ pub struct Employee {
 
 impl PartialEq for Employee {
 	fn eq(&self, other: &Self) -> bool {
-		todo!("complete the implementation");
+		self.uid == other.uid
 	}
 }
 impl Eq for Employee {}
@@ -34,13 +34,24 @@ impl Eq for Employee {}
 
 impl PartialOrd for Employee {
 	fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-		todo!("complete the implementation");
+		Some(self.cmp(&other))
 	}
 }
 
 impl Ord for Employee {
 	fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-		todo!("complete the implementation");
+		if self.uid == other.uid {
+            std::cmp::Ordering::Equal
+        } else {
+			let value1 = self.experience/self.wage;
+			let value2 = other.experience/other.wage;
+			if value1 > value2 {
+				std::cmp::Ordering::Greater
+			}
+            else {
+				std::cmp::Ordering::Less
+			}
+        }
 	}
 }
 
@@ -59,14 +70,24 @@ impl TryFrom<String> for Employee {
 	type Error = &'static str;
 
 	fn try_from(value: String) -> Result<Self, Self::Error> {
-		todo!("complete the implementation");
+		let parts: Vec<&str> = value.split(',').collect();
+        if parts.len() != 4 {
+            return Err("Invalid format");
+        }
+		
+        let name = parts[0].trim().to_string();
+        let experience = parts[1].trim().parse::<u32>().map_err(|_| "Invalid experience")?;
+        let wage = parts[2].trim().parse::<u32>().map_err(|_| "Invalid wage")?;
+        let uid = parts[3].trim().parse::<u32>().map_err(|_| "Invalid UID")?;
+
+        Ok(Employee { name, experience, wage, uid })
 	}
 }
 
 // We also want to convert employees back into strings in the same format as above.
 impl From<Employee> for String {
 	fn from(e: Employee) -> Self {
-		todo!("complete the implementation");
+		format!("{}, {}, {}, {}", e.name, e.experience, e.wage, e.uid)
 	}
 }
 
@@ -74,13 +95,13 @@ impl From<Employee> for String {
 /// On a scale from 0 - 255, with zero being extremely easy and 255 being extremely hard,
 /// how hard did you find this section of the exam.
 pub fn how_hard_was_this_section() -> u8 {
-	todo!()
+	150
 }
 
 /// This function is not graded. It is just for collecting feedback.
 /// How much time (in hours) did you spend on this section of the exam?
 pub fn how_many_hours_did_you_spend_on_this_section() -> u8 {
-	todo!()
+	1
 }
 
 #[cfg(test)]
@@ -146,5 +167,23 @@ mod tests {
 		};
 
 		assert!(susie != billy);
+	}
+	// Equal Employee test
+	#[test]
+	fn employee_eq() {
+		let billy = Employee {
+			name: String::from("Billy"),
+			experience: 4,
+			wage: 5,
+			uid: 345,
+		};
+		let billy_ = Employee {
+			name: String::from("Billy"),
+			experience: 4,
+			wage: 5,
+			uid: 345,
+		};
+
+		assert!(billy_ == billy);
 	}
 }

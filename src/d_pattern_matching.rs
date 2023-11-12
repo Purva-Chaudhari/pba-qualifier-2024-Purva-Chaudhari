@@ -6,35 +6,67 @@
 
 /// Returns true if the last two strings in the vector start with `PBA`.
 pub fn match_1(input: Vec<String>) -> bool {
-	todo!();
+	match input.len(){
+		0 | 1 => {false}
+		_ => {
+			if  input[input.len()-1].starts_with("PBA") && 
+				input[input.len()-2].starts_with("PBA")  
+				{true 
+			}
+			else {
+				false
+			}
+		}
+	} 
 }
 
 /// Returns true if the first and last string in the vector start with `PBA`.
 pub fn match_2(input: Vec<String>) -> bool {
-	todo!();
+	match input.len(){
+		0 | 1 => {false}
+		_ => {
+			if  input[input.len()-1].starts_with("PBA") && 
+				input[0].starts_with("PBA")  
+				{true 
+			}
+			else {
+				false
+			}
+		}
+	} 
 }
 
 /// Returns true if the first item in `input` is true.
 pub fn match_3(input: (bool, bool, bool)) -> bool {
-	todo!();
+	match input.0 {
+		true  => {true}
+		_ => {false}
+	} 
 }
 
 /// Returns true if the input is `Ok(x)` of some even `x`.
 pub fn match_4(input: Result<u32, &'static str>) -> bool {
-	todo!();
+	match input {
+		Ok(x) => {
+			x%2==0
+		}
+		Err(err)=>{
+			false
+		}
+	}
 }
 
 /// This function is not graded. It is just for collecting feedback.
 /// On a scale from 0 - 255, with zero being extremely easy and 255 being extremely hard,
 /// how hard did you find this section of the exam.
 pub fn how_hard_was_this_section() -> u8 {
-	todo!()
+	100
 }
 
 /// This function is not graded. It is just for collecting feedback.
 /// How much time (in hours) did you spend on this section of the exam?
 pub fn how_many_hours_did_you_spend_on_this_section() -> u8 {
-	todo!()
+	1
 }
 
 #[cfg(test)]
