@@ -77,17 +77,15 @@ impl EmployeeBuilder {
 	}
 
 	pub fn build(self) -> Result<Employee, ()> {
-		if self.name.is_none() || self.uid.is_none() {
-			return Err(());
-		}
-		Ok(
-			Employee { 
-				name: self.name.unwrap(), 
-				experience: self.experience, 
-				wage: self.wage, 
-				uid: self.uid.unwrap() 
-			}
-		)
+		match (self.name, self.uid) {
+            (Some(name), Some(uid)) => Ok(Employee {
+                name,
+                uid,
+                experience: self.experience,
+                wage: self.wage,
+            }),
+            _ => Err(())
+        }
 	}
 }
 
@@ -200,54 +198,72 @@ impl Default for TypedEmployeeBuilder<NotNamed, UnIdentified> {
 	}
 }
 
-impl TypedEmployeeBuilder<Named, Identified> 
+impl TypedEmployeeBuilder<NotNamed, UnIdentified> 
 {
-	pub fn name(self, name: String) -> Self {
-		TypedEmployeeBuilder {
-			name: Named { name },
-			..self
-		}
-	}
+	pub fn name(self, name: String) -> TypedEmployeeBuilder<Named, UnIdentified> {
+        TypedEmployeeBuilder {
+            experience: self.experience,
+            wage: self.wage,
+            name: Named { name },
+            uid: self.uid,
+        }
+    }
+	pub fn uid(self, uid: u32) -> TypedEmployeeBuilder<NotNamed, Identified> {
+        TypedEmployeeBuilder {
+            experience: self.experience,
+            wage: self.wage,
+            name:  self.name ,
+            uid: Identified {uid},
+        }
+    }
+}
+impl TypedEmployeeBuilder<Named, UnIdentified> {
+    pub fn uid(self, uid: u32) -> TypedEmployeeBuilder<Named, Identified> {
+        TypedEmployeeBuilder {
+            experience: self.experience,
+            wage: self.wage,
+            name: self.name,
+            uid: Identified { uid },
+        }
+    }
+}
 
-	pub fn uid(self, uid: u32) -> Self {
-		TypedEmployeeBuilder {
-			uid: Identified { uid },
-			..self
-		}
-	}
+impl TypedEmployeeBuilder<NotNamed, Identified> {
+    pub fn name(self, name: String) -> TypedEmployeeBuilder<Named, Identified> {
+        TypedEmployeeBuilder {
+            experience: self.experience,
+            wage: self.wage,
+            name: Named { name },
+            uid:  self.uid ,
+        }
+    }
+	
 }
 
 impl<Name, Id> TypedEmployeeBuilder<Name, Id> 
 where
-	Name: NameGetter,
-	Id: IdGetter,
-{
-	pub fn experience(self, experience: u32) -> Self {
-		TypedEmployeeBuilder {
-			experience,
-			..self
-		}
-	}
+    Name: NameGetter,
+    Id: IdGetter,{
+    pub fn experience(mut self, experience: u32) -> Self {
+        self.experience = experience;
+        self
+    }
 
-	pub fn wage(self, wage: u32) -> Self {
-		TypedEmployeeBuilder {
-			wage,
-			..self
-		}
-	}
+    pub fn wage(mut self, wage: u32) -> Self {
+        self.wage = wage;
+        self
+    }
+}
 
-	pub fn build(self) -> Employee {
-		if self.name.get_name().is_empty() || self.uid.get_id() == 0 {
-			panic!("Name or uid not set");
-		}
-
-		Employee {
-			name: self.name.get_name(),
-			uid: self.uid.get_id(),
-			experience: self.experience,
-			wage: self.wage,
-		}
-	}
+impl TypedEmployeeBuilder<Named, Identified> {
+    pub fn build(self) -> Employee {
+        Employee {
+            name: self.name.get_name(),
+            uid: self.uid.get_id(),
+            experience: self.experience,
+            wage: self.wage,
+        }
+    }
 }
 
 /// This function is not graded. It is just for collecting feedback.
